@@ -4,11 +4,10 @@ import { useState, useEffect } from "react";
 const TimerApp = () => {
   const [time, setTime] = useState<number>(0); // Time in seconds
   const [isRunning, setIsRunning] = useState(false);
-  const [isEditable, setIsEditable] = useState(true); // Editable input state
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
-  const [isTimeUp, setIsTimeUp] = useState(false); // For detecting timer completion
+  const [isTimeUp, setIsTimeUp] = useState(false); // To track if time is up
 
   // Timer logic
   useEffect(() => {
@@ -34,11 +33,10 @@ const TimerApp = () => {
     setSeconds(secs);
   }, [time]);
 
-  // Set Timer and auto start
+  // Set Timer and start automatically
   const setTimer = () => {
     if (hours > 0 || minutes > 0 || seconds > 0) {
       setTime(hours * 3600 + minutes * 60 + seconds);
-      setIsEditable(false); // Lock input after setting timer
       setIsRunning(true); // Automatically start the timer after setting
       setIsTimeUp(false); // Reset the time-up state
     }
@@ -48,7 +46,6 @@ const TimerApp = () => {
   const resetTimer = () => {
     setTime(0);
     setIsRunning(false);
-    setIsEditable(true); // Unlock input
     setHours(0);
     setMinutes(0);
     setSeconds(0);
@@ -62,82 +59,57 @@ const TimerApp = () => {
     }
   };
 
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    if (isTimeUp) setIsTimeUp(false); // Reset blinking if user changes input
+    const value = Math.max(0, Math.min(field === 'hours' ? 23 : 59, parseInt(e.target.value) || 0));
+
+    if (field === 'hours') {
+      setHours(value);
+    } else if (field === 'minutes') {
+      setMinutes(value);
+    } else {
+      setSeconds(value);
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-teal-800 via-purple-900 to-black text-white p-6">
-      <h1 className="text-5xl font-extrabold mb-8 text-teal-200 drop-shadow-lg">
-        Timer App
-      </h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-900 via-black to-black text-white p-6">
+      <h1 className="text-4xl font-bold mb-8 text-teal-300 drop-shadow-lg">Timer App</h1>
 
       {/* Timer Input/Display Box */}
-      <div className="my-10 w-full max-w-md p-8 rounded-lg bg-gradient-to-br from-teal-900 via-purple-900 to-black bg-opacity-70 backdrop-blur-lg border-4 border-teal-500 shadow-xl">
-        <div
-          className={`text-6xl font-bold font-mono flex items-center justify-center text-teal-200 ${isEditable ? "cursor-text" : ""}`}
-          onClick={() => isEditable && setIsEditable(true)} // Make editable on click
-        >
+      <div className="my-10 w-full max-w-md p-8 rounded-lg bg-gradient-to-br from-purple-700 via-black to-black bg-opacity-80 backdrop-blur-lg border-4 border-purple-500 shadow-xl">
+        <div className={`text-6xl font-bold font-mono flex items-center justify-center ${isTimeUp ? "text-red-500 animate-blink" : "text-teal-300"}`}>
           <input
             type="text"
             value={hours.toString().padStart(2, "0")}
-            onChange={(e) =>
-              setHours(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))
-            }
+            onChange={(e) => handleInputChange(e, 'hours')}
             onKeyPress={handleKeyPress}
-            className={`w-20 text-center bg-transparent outline-none appearance-none ${
-              isEditable
-                ? "border-b-2 border-teal-400 focus:ring-2 focus:ring-teal-500"
-                : "pointer-events-none"
-            } ${isTimeUp ? "text-red-500 animate-blink" : ""}`} // Add blink effect and red text if time's up
+            className={`w-20 text-center bg-transparent outline-none appearance-none ${isTimeUp ? "text-red-500" : "text-teal-300"}`}
           />
-          <span className="mx-2 text-teal-300">:</span>
+          <span className="mx-2 text-teal-400">:</span>
           <input
             type="text"
             value={minutes.toString().padStart(2, "0")}
-            onChange={(e) =>
-              setMinutes(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))
-            }
+            onChange={(e) => handleInputChange(e, 'minutes')}
             onKeyPress={handleKeyPress}
-            className={`w-20 text-center bg-transparent outline-none appearance-none ${
-              isEditable
-                ? "border-b-2 border-teal-400 focus:ring-2 focus:ring-teal-500"
-                : "pointer-events-none"
-            } ${isTimeUp ? "text-red-500 animate-blink" : ""}`} // Same for minutes
+            className={`w-20 text-center bg-transparent outline-none appearance-none ${isTimeUp ? "text-red-500" : "text-teal-300"}`}
           />
-          <span className="mx-2 text-teal-300">:</span>
+          <span className="mx-2 text-teal-400">:</span>
           <input
             type="text"
             value={seconds.toString().padStart(2, "0")}
-            onChange={(e) =>
-              setSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))
-            }
+            onChange={(e) => handleInputChange(e, 'seconds')}
             onKeyPress={handleKeyPress}
-            className={`w-20 text-center bg-transparent outline-none appearance-none ${
-              isEditable
-                ? "border-b-2 border-teal-400 focus:ring-2 focus:ring-teal-500"
-                : "pointer-events-none"
-            } ${isTimeUp ? "text-red-500 animate-blink" : ""}`} // Same for seconds
+            className={`w-20 text-center bg-transparent outline-none appearance-none ${isTimeUp ? "text-red-500" : "text-teal-300"}`}
           />
         </div>
       </div>
 
       {/* Control Buttons */}
       <div className="flex gap-6 mt-8">
-        <button
-          onClick={() => setIsRunning((prev) => !prev)}
-          className={`w-40 py-3 text-lg font-bold rounded-lg transition duration-200 ${
-            time > 0
-              ? "bg-teal-500 hover:bg-teal-600 text-white"
-              : "bg-gray-400 text-gray-300 cursor-not-allowed"
-          }`}
-          disabled={time === 0} // Disable Start/Pause if timer is not set
-        >
-          {isRunning ? "Pause" : "Start"}
-        </button>
-        <button
-          onClick={resetTimer}
-          className="w-40 py-3 text-lg font-bold bg-red-500 hover:bg-red-600 text-white rounded-lg transition duration-200"
-        >
-          Reset
-        </button>
-        {isEditable && (
+        {/* Show only Set Timer button when timer is not running */}
+        {!isRunning && time === 0 && (
           <button
             onClick={setTimer}
             className={`w-40 py-3 text-lg font-bold ${
@@ -148,6 +120,36 @@ const TimerApp = () => {
             disabled={hours === 0 && minutes === 0 && seconds === 0}
           >
             Set Timer
+          </button>
+        )}
+
+        {/* Pause Button when timer is running */}
+        {isRunning && !isTimeUp && (
+          <button
+            onClick={() => setIsRunning(false)}
+            className="w-40 py-3 text-lg font-bold bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition duration-200"
+          >
+            Pause
+          </button>
+        )}
+
+        {/* Start Button when timer is paused */}
+        {!isRunning && time > 0 && !isTimeUp && (
+          <button
+            onClick={() => setIsRunning(true)}
+            className="w-40 py-3 text-lg font-bold bg-green-500 hover:bg-green-600 text-white rounded-lg transition duration-200"
+          >
+            Start
+          </button>
+        )}
+
+        {/* Reset Button when timer is running or paused */}
+        {(isRunning || !isRunning || isTimeUp) && (
+          <button
+            onClick={resetTimer}
+            className="w-40 py-3 text-lg font-bold bg-red-500 hover:bg-red-600 text-white rounded-lg transition duration-200"
+          >
+            Reset
           </button>
         )}
       </div>
